@@ -66,21 +66,25 @@ Downloads".
 
 ### 🧹 Finds cleanup opportunities
 
-Nine groups of things worth throwing away, found automatically:
+Sixteen groups of things worth throwing away, found automatically:
 
 | Group | What it is | Risk |
 | --- | --- | --- |
-| **Xcode DerivedData** | Build intermediates Xcode regenerates | ✅ Safe |
 | **Application caches** | Temporary files apps recreate on demand | ✅ Safe |
+| **App container caches** | Caches stored inside sandboxed app containers | ✅ Safe |
 | **Package manager caches** | Homebrew, npm, Yarn, pnpm, Gradle, Maven, Cargo | ✅ Safe |
 | **Logs** | Diagnostic logs and crash reports | ✅ Safe |
+| **Xcode DerivedData** | Build intermediates Xcode regenerates | ✅ Safe |
+| **Simulator caches** | Temporary runtime data used by Simulator | ✅ Safe |
 | **`node_modules`** | Reinstall with npm, yarn or pnpm | ⚠️ Review |
-| **Docker disk image** | Container images, volumes and cache in one file | ⚠️ Review |
-| **Simulator devices** | Simulated iPhones and iPads, including their app data | ⚠️ Review |
-| **Xcode Archives** | Archived builds for App Store uploads | ⚠️ Review |
 | **Build artifacts** | Swift `.build` folders that can be rebuilt | ⚠️ Review |
-
-Also on the list: old installers in Downloads and the Trash itself.
+| **Xcode Archives** | Archived builds for App Store uploads | ⚠️ Review |
+| **iOS DeviceSupport** | Debug symbols for devices and old iOS versions | ⚠️ Review |
+| **Simulator devices** | Simulated iPhones and iPads, including their app data | ⚠️ Review |
+| **iPhone & iPad backups** | Local device backups you can recreate from iCloud or Finder | ⚠️ Review |
+| **Docker disk image** | Container images, volumes and cache in one file | ⚠️ Review |
+| **Old installers** | Large downloads older than 30 days | ⚠️ Review |
+| **Trash** | Items already in the Trash — deleted permanently | ⚠️ Review |
 
 **Safe to remove** groups are pre-selected. **Review first** groups need an
 explicit choice, because they're safe to remove but you'll want to download or

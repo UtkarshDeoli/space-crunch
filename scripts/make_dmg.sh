@@ -18,7 +18,7 @@ if [[ ! -d "$APP" ]]; then
 fi
 
 VERSION="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Contents/Info.plist")"
-OUT="${1:-$ROOT/dist/$APP_NAME-$VERSION-universal.dmg}"
+OUT="${1:-$ROOT/dist/$APP_NAME-$VERSION.dmg}"
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 

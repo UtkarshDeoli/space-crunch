@@ -3,6 +3,9 @@ set -euo pipefail
 
 # Builds a signed, double-clickable SpaceCrunch.app in dist/.
 # Usage: scripts/build_app.sh [--open]
+#
+# Set SPACECRUNCH_VERSION to override the version baked into the bundle — the
+# release workflow uses it to stamp the tag's version into the app.
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
@@ -11,7 +14,7 @@ APP_NAME="SpaceCrunch"
 DIST="$ROOT/dist"
 APP="$DIST/$APP_NAME.app"
 BUNDLE_ID="com.utkarsh.spacecrunch"
-VERSION="1.0"
+VERSION="${SPACECRUNCH_VERSION:-1.0.0}"
 
 echo "==> Building release binary"
 swift build -c release --product "$APP_NAME"

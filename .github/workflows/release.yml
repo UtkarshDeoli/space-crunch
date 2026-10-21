@@ -66,6 +66,8 @@ jobs:
         run: swift test
 
       - name: Package app bundle
+        env:
+          SPACECRUNCH_VERSION: ${{ steps.version.outputs.version }}
         run: scripts/build_app.sh
 
       # Notarization needs a paid Apple Developer Program membership, so it only
@@ -94,6 +96,7 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
           CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -euo pipefail
           KEYCHAIN="$RUNNER_TEMP/build.keychain"
@@ -111,7 +114,7 @@ jobs:
           rm -rf dist/SpaceCrunch.app
           mkdir -p dist
           swift build -c release --product SpaceCrunch
-          scripts/build_app.sh
+          SPACECRUNCH_VERSION="$VERSION" scripts/build_app.sh
 
           # Re-sign with the Developer ID identity and notarize.
           IDENTITY="Developer ID Application: $APPLE_ID ($TEAM_ID)"
