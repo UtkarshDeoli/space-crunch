@@ -66,7 +66,7 @@ Downloads".
 
 ### 🧹 Finds cleanup opportunities
 
-Sixteen groups of things worth throwing away, found automatically:
+Fifteen groups of things worth throwing away, found automatically:
 
 | Group | What it is | Risk |
 | --- | --- | --- |
@@ -119,16 +119,25 @@ confirmation.
 
 <img src="docs/screenshots/large-files-dark.png" width="900" alt="Large Files screen with file icons, sizes and dates">
 
-### Light appearance
-
-<img src="docs/screenshots/overview-light.png" width="900" alt="SpaceCrunch overview in light appearance">
-
 </div>
 
 ### The tour
 
 <div align="center">
   <img src="docs/gifs/tour.gif" width="900" alt="Animated tour of SpaceCrunch: overview, cleanup, large files and the treemap">
+</div>
+
+### Light appearance
+
+SpaceCrunch follows your system's appearance. The screenshots above are dark;
+here is the same app in light mode.
+
+<div align="center">
+
+<img src="docs/screenshots/overview-light.png" width="900" alt="SpaceCrunch overview in light appearance, showing the reclaimable total, storage bar and category breakdown">
+
+<img src="docs/screenshots/cleanup-light.png" width="900" alt="Smart Cleanup screen in light appearance">
+
 </div>
 
 ---

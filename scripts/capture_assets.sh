@@ -31,11 +31,12 @@ trap 'rm -rf "$WORK"' EXIT
 
 # MARK: - Still screenshots
 
+# The app scans the disk once and then photographs every screen in every
+# appearance, so both sets of stills cost one scan rather than two.
 capture_stills() {
-  local appearance="$1"
-  local dir="$WORK/stills-$appearance"
+  local dir="$WORK/stills"
 
-  echo "==> Capturing $appearance screenshots"
+  echo "==> Capturing still screenshots"
   rm -rf "$dir"
   mkdir -p "$dir"
   pkill -f "SpaceCrunch" 2>/dev/null || true
@@ -43,8 +44,7 @@ capture_stills() {
 
   open -a "$APP" --args \
     --capture-dir "$dir" \
-    --window-size 1280x800 \
-    --appearance "$appearance"
+    --window-size 1280x800
 
   # The app terminates itself once the captures are written.
   local waited=0
@@ -58,16 +58,18 @@ capture_stills() {
     fi
   done
 
-  for name in overview cleanup browse large-files; do
-    local src="$dir/$appearance/$name.png"
-    if [[ ! -f "$src" ]]; then
-      echo "error: missing capture $src" >&2
-      exit 1
-    fi
-    # Resize to a width GitHub renders well without a 2× download.
-    sips --resampleHeightWidthMax 2000 "$src" \
-      --out "$SCREENSHOTS/$name-$appearance.png" >/dev/null
-    echo "    $SCREENSHOTS/$name-$appearance.png"
+  for appearance in dark light; do
+    for name in overview cleanup browse large-files; do
+      local src="$dir/$appearance/$name.png"
+      if [[ ! -f "$src" ]]; then
+        echo "error: missing capture $src" >&2
+        exit 1
+      fi
+      # Resize to a width GitHub renders well without a 2× download.
+      sips --resampleHeightWidthMax 2000 "$src" \
+        --out "$SCREENSHOTS/$name-$appearance.png" >/dev/null
+      echo "    $SCREENSHOTS/$name-$appearance.png"
+    done
   done
 }
 
@@ -104,11 +106,10 @@ capture_tour() {
   fi
 
   echo "==> Building the GIF"
-  scripts/make_gif.sh "$dir/frames" "$GIF_DIR/tour.gif" 1000
+  scripts/make_gif.sh "$dir/frames" "$GIF_DIR/tour.gif" 900
 }
 
-capture_stills dark
-capture_stills light
+capture_stills
 capture_tour
 
 echo "==> Done. Assets in $OUT"

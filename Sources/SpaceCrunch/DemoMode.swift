@@ -59,13 +59,18 @@ enum DemoMode {
         try? await Task.sleep(for: .milliseconds(800))
 
         var index = 0
-        var durations: [Double] = []
+        var holds: [(seconds: Double, motion: Bool)] = []
 
         /// Captures one frame and records how long it should be held.
-        func shoot(_ seconds: Double) async {
+        ///
+        /// `motion` marks a frame captured mid-scroll, on its way to somewhere.
+        /// The GIF builder uses the flag to thin those out: a scroll needs
+        /// enough frames to read as movement, but not one per step, and the
+        /// dwell frames that follow are what the viewer actually reads.
+        func shoot(_ seconds: Double, motion: Bool = false) async {
             let name = String(format: "%04d.png", index)
             index += 1
-            durations.append(seconds)
+            holds.append((seconds, motion))
             await CaptureWindow.capture(to: frames.appendingPathComponent(name))
         }
 
@@ -85,7 +90,7 @@ enum DemoMode {
                 let t = CGFloat(step) / CGFloat(steps)
                 CaptureWindow.scrollMainContent(to: fraction * t)
                 await settle(70)
-                await shoot(0.05)
+                await shoot(0.05, motion: true)
             }
         }
 
@@ -147,8 +152,14 @@ enum DemoMode {
         await settle(900)
         await shoot(1.5)
 
-        // Write the timing manifest next to the frames.
-        let manifest = durations.map { String(format: "%.3f", $0) }.joined(separator: "\n")
+        // Write the timing manifest next to the frames: one line per frame,
+        // holding how long to show it and whether it was captured mid-scroll.
+        //
+        // It ends with a newline so that a reader looping over the lines
+        // doesn't drop the last one.
+        let manifest = holds
+            .map { String(format: "%.3f %d", $0.seconds, $0.motion ? 1 : 0) }
+            .joined(separator: "\n") + "\n"
         try? manifest.write(
             to: directory.appendingPathComponent("durations.txt"),
             atomically: true,
