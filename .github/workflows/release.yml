@@ -1,0 +1,157 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g. 1.0.0). Leave empty to derive from the tag."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: macos-26
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify the toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+          xcodebuild -showsdks | grep -q "macOS 26" || {
+            echo "::error::No macOS 26 SDK on this runner"
+            exit 1
+          }
+
+      - name: Resolve version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          version=""
+          if [ -n "$INPUT_VERSION" ]; then
+            version="${INPUT_VERSION#v}"
+          elif [ "$REF_NAME" != "" ] && [ "${REF_NAME#v}" != "$REF_NAME" ]; then
+            version="${REF_NAME#v}"
+          else
+            version="$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//')"
+          fi
+          if [ -z "$version" ]; then
+            echo "Could not determine a version" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Releasing v$version"
+
+      - name: Build
+        run: swift build -c release --product SpaceCrunch
+
+      - name: Test
+        run: swift test
+
+      - name: Package app bundle
+        run: scripts/build_app.sh
+
+      # Notarization needs a paid Apple Developer Program membership, so it only
+      # runs when the signing secrets are configured. Without them the build
+      # falls back to an ad-hoc signature, which still works but shows a
+      # Gatekeeper warning on first launch.
+      - name: Detect notarization credentials
+        id: notarize
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          if [ -n "$APPLE_ID" ] && [ -n "$TEAM_ID" ] && [ -n "$APPLE_APP_SPECIFIC_PASSWORD" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Notarization secrets are not configured — building an ad-hoc signed release."
+          fi
+
+      - name: Sign and notarize
+        if: steps.notarize.outputs.enabled == 'true'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN="$RUNNER_TEMP/build.keychain"
+          echo "$CERTIFICATE_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$CERTIFICATE_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$CERTIFICATE_PASSWORD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" \
+            -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security list-keychain -d user -s "$KEYCHAIN" login.keychain-db
+          security set-key-partition-list -S apple-tool:,apple: \
+            -s -k "$CERTIFICATE_PASSWORD" "$KEYCHAIN" >/dev/null
+
+          # Build the app signed with the Developer ID identity.
+          rm -rf dist/SpaceCrunch.app
+          mkdir -p dist
+          swift build -c release --product SpaceCrunch
+          scripts/build_app.sh
+
+          # Re-sign with the Developer ID identity and notarize.
+          IDENTITY="Developer ID Application: $APPLE_ID ($TEAM_ID)"
+          codesign --force --deep --options runtime --timestamp --sign "$IDENTITY" \
+            dist/SpaceCrunch.app
+          xcrun notarytool submit dist/SpaceCrunch.app \
+            --apple-id "$APPLE_ID" \
+            --team-id "$TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --wait
+          xcrun stapler staple dist/SpaceCrunch.app
+          xcrun stapler validate dist/SpaceCrunch.app
+
+      - name: Build DMG
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: scripts/make_dmg.sh "dist/SpaceCrunch-$VERSION.dmg"
+
+      - name: Checksum
+        id: checksum
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          cd dist
+          shasum -a 256 "SpaceCrunch-$VERSION.dmg" > "SpaceCrunch-$VERSION.dmg.sha256"
+          cat "SpaceCrunch-$VERSION.dmg.sha256"
+
+      - name: Verify the app bundle
+        run: |
+          codesign --verify --deep --strict dist/SpaceCrunch.app || \
+            codesign --verify --deep dist/SpaceCrunch.app
+          test -x dist/SpaceCrunch.app/Contents/MacOS/SpaceCrunch
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: SpaceCrunch v${{ steps.version.outputs.version }}
+          tag_name: v${{ steps.version.outputs.version }}
+          draft: true
+          generate_release_notes: true
+          files: |
+            dist/SpaceCrunch-${{ steps.version.outputs.version }}.dmg
+            dist/SpaceCrunch-${{ steps.version.outputs.version }}.dmg.sha256

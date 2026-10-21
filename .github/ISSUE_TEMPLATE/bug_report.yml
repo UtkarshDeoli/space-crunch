@@ -1,0 +1,69 @@
+name: Bug report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, and what did SpaceCrunch do instead?
+      placeholder: The scan finished, but the treemap on the Overview screen is empty.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the app?
+      options:
+        - Scanning
+        - Overview
+        - Smart Cleanup
+        - Large Files
+        - Browse / treemap
+        - Deleting
+        - The app won't launch
+        - Something else
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: SpaceCrunch version
+      placeholder: 1.0.0
+    validations:
+      required: true
+
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      description: "Click the  icon → About This Mac"
+      placeholder: macOS 26.1
+    validations:
+      required: true
+
+  - type: input
+    id: hardware
+    attributes:
+      label: Mac model
+      placeholder: MacBook Pro 16", M4 Pro
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Any error output?
+      description: "Run the app from Terminal and paste the output, or paste any console messages."
+      render: shell
+    validations:
+      required: false
