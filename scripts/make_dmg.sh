@@ -23,7 +23,10 @@ STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
 echo "==> Staging $APP_NAME $VERSION"
-cp -R "$APP" "$STAGE/$APP_NAME"
+# Copy the bundle itself, keeping the .app extension. Copying to an explicit
+# destination name ("$STAGE/$APP_NAME") would drop the extension and produce
+# a plain folder, which Finder won't launch.
+cp -R "$APP" "$STAGE/"
 ln -s /Applications "$STAGE/Applications"
 
 # A minimal .DS_Store keeps the volume tidy when opened in Finder.
