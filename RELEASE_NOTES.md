@@ -43,8 +43,15 @@ brew trust utkarshdeoli/spacecrunch   # only on Homebrew versions with tap trust
 brew install --cask spacecrunch
 ```
 
-Or download the `.dmg` from the assets below, open it, drag SpaceCrunch into
-Applications, and clear the quarantine attribute once:
+Or download the `.dmg` from the assets below, clear the quarantine attribute on
+it, then open it and drag SpaceCrunch into Applications:
+
+```sh
+xattr -dr com.apple.quarantine ~/Downloads/SpaceCrunch-1.0.0.dmg
+```
+
+If you already dragged the app out, clear the attribute on the installed copy
+instead — it works just as well:
 
 ```sh
 xattr -dr com.apple.quarantine /Applications/SpaceCrunch.app

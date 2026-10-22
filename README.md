@@ -161,15 +161,24 @@ attribute that Gatekeeper uses to block the app — see
 ### From a release
 
 1. Download the `.dmg` from the [releases page](https://github.com/UtkarshDeoli/space-crunch/releases/latest).
-2. Open it and drag **SpaceCrunch** into **Applications**.
-3. Clear the quarantine attribute once, then launch:
+2. Clear the quarantine attribute on the download:
 
    ```sh
-   xattr -dr com.apple.quarantine /Applications/SpaceCrunch.app
+   xattr -dr com.apple.quarantine ~/Downloads/SpaceCrunch-1.0.0.dmg
    ```
 
-   Without that step macOS refuses to open the app — see
-   [Why Homebrew?](#why-homebrew) below.
+3. Open the `.dmg` and drag **SpaceCrunch** into **Applications**.
+4. Launch it from Spotlight or Applications.
+
+If you already dragged the app out, clear the attribute on the installed copy
+instead — it works just as well:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/SpaceCrunch.app
+```
+
+Without one of these steps macOS refuses to open the app — see
+[Why Homebrew?](#why-homebrew) below.
 
 ### Why Homebrew?
 
@@ -185,7 +194,7 @@ unverifiable and refuses to open it:
 Older macOS versions offered a right-click → **Open** override. **On macOS 26+
 that override no longer works for ad-hoc-signed apps** — the same dialog
 reappears and the app still will not start. The only remedies are to strip the
-quarantine attribute (what the cask and the `xattr` command above do) or to
+quarantine attribute (what the cask and the `xattr` commands above do) or to
 build from source, which produces an app that was never quarantined.
 
 ### From source
