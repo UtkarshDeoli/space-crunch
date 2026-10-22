@@ -17,6 +17,8 @@ worth throwing away, and removes it safely.
 
 [⬇️ Download the latest release](https://github.com/UtkarshDeoli/space-crunch/releases/latest)
 
+<sub>or <a href="#installing">install with Homebrew</a> — no Gatekeeper prompt</sub>
+
 </div>
 
 ---
