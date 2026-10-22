@@ -144,21 +144,47 @@ here is the same app in light mode.
 
 ## Installing
 
-### From a release (recommended)
+### With Homebrew (recommended)
+
+```sh
+brew tap UtkarshDeoli/spacecrunch
+brew trust utkarshdeoli/spacecrunch   # only on Homebrew versions with tap trust
+brew install --cask spacecrunch
+```
+
+Then launch it from **Applications**. The cask clears the quarantine
+attribute that Gatekeeper uses to block the app — see
+[Why Homebrew?](#why-homebrew) below.
+
+### From a release
 
 1. Download the `.dmg` from the [releases page](https://github.com/UtkarshDeoli/space-crunch/releases/latest).
 2. Open it and drag **SpaceCrunch** into **Applications**.
-3. Launch it from Spotlight or Applications.
+3. Clear the quarantine attribute once, then launch:
 
-> **First launch?** The release build is ad-hoc signed, because signing and
-> notarizing for distribution requires a paid
-> [Apple Developer Program](https://developer.apple.com/programs/) membership.
-> macOS will show *"SpaceCrunch cannot be opened because it is from an
-> unidentified developer."* Right-click the app in **Applications** →
-> **Open** → **Open** to approve it once. After that it launches normally.
->
-> If you'd rather not do that, [build it from source](#build-and-run) — it
-> runs from wherever you put it, no Gatekeeper prompt.
+   ```sh
+   xattr -dr com.apple.quarantine /Applications/SpaceCrunch.app
+   ```
+
+   Without that step macOS refuses to open the app — see
+   [Why Homebrew?](#why-homebrew) below.
+
+### Why Homebrew?
+
+The release build is **ad-hoc signed**, because signing and notarizing for
+distribution requires a paid
+[Apple Developer Program](https://developer.apple.com/programs/) membership.
+On macOS 26 and newer, Gatekeeper treats an ad-hoc-signed, unnotarized app as
+unverifiable and refuses to open it:
+
+> Apple could not verify "SpaceCrunch" is free of malware that may harm your
+> Mac or compromise your privacy.
+
+Older macOS versions offered a right-click → **Open** override. **On macOS 26+
+that override no longer works for ad-hoc-signed apps** — the same dialog
+reappears and the app still will not start. The only remedies are to strip the
+quarantine attribute (what the cask and the `xattr` command above do) or to
+build from source, which produces an app that was never quarantined.
 
 ### From source
 

@@ -35,15 +35,30 @@ safely.
 
 ## Installation
 
-Download the `.dmg` from the assets below, open it, and drag SpaceCrunch into
-Applications.
+With Homebrew:
+
+```sh
+brew tap UtkarshDeoli/spacecrunch
+brew trust utkarshdeoli/spacecrunch   # only on Homebrew versions with tap trust
+brew install --cask spacecrunch
+```
+
+Or download the `.dmg` from the assets below, open it, drag SpaceCrunch into
+Applications, and clear the quarantine attribute once:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/SpaceCrunch.app
+```
 
 > The release build is **ad-hoc signed**, because signing and notarizing for
 > distribution requires a paid
 > [Apple Developer Program](https://developer.apple.com/programs/) membership.
-> On first launch macOS will show *"SpaceCrunch cannot be opened because it is
-> from an unidentified developer."* Right-click the app in Applications →
-> **Open** → **Open** to approve it once. After that it launches normally.
+> On macOS 26 and newer, Gatekeeper refuses to open an ad-hoc-signed,
+> unnotarized app: *"Apple could not verify 'SpaceCrunch' is free of malware
+> that may harm your Mac or compromise your privacy."* The right-click →
+> **Open** override that older macOS versions offered does not work there —
+> the same dialog reappears. Clearing the quarantine attribute is what the
+> Homebrew cask does for you.
 
 ## Full Disk Access
 
